@@ -1,10 +1,11 @@
 // ===== Firebase 초기화 =====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAvGhAoK94HZNjNc_EURXFdGTZJgvylkiA",
   authDomain: "vibe-todolist-9a065.firebaseapp.com",
+  databaseURL: "https://vibe-todolist-9a065-default-rtdb.firebaseio.com",
   projectId: "vibe-todolist-9a065",
   storageBucket: "vibe-todolist-9a065.firebasestorage.app",
   messagingSenderId: "180684807995",
@@ -13,11 +14,11 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db = getDatabase(app);
 
-// Firestore 문서 참조
-const todosDocRef = doc(db, 'vibe-todolist', 'todos');
-const statsDocRef = doc(db, 'vibe-todolist', 'userStats');
+// Realtime Database 참조
+const todosRef = ref(db, 'todos');
+const statsRef = ref(db, 'userStats');
 
 // ===== 상태 관리 =====
 const STATE_KEY = 'todomaster_state';
@@ -54,49 +55,49 @@ function saveLocalState() {
   localStorage.setItem(STATE_KEY, JSON.stringify(state));
 }
 
-async function saveToFirestore() {
+async function saveToFirebase() {
   try {
-    const { todos, ...stats } = state;
+    const { todos, filter, ...stats } = state;
     await Promise.all([
-      setDoc(todosDocRef, { items: todos }),
-      setDoc(statsDocRef, {
+      set(todosRef, todos),
+      set(statsRef, {
         xp: stats.xp,
         level: stats.level,
         totalCompleted: stats.totalCompleted,
         streak: stats.streak,
-        lastCompletedDate: stats.lastCompletedDate,
+        lastCompletedDate: stats.lastCompletedDate || null,
         energy: stats.energy,
       }),
     ]);
   } catch (err) {
-    console.warn('Firestore 저장 실패, localStorage 사용:', err);
+    console.warn('Firebase 저장 실패, localStorage 사용:', err);
   }
 }
 
-async function loadFromFirestore() {
+async function loadFromFirebase() {
   try {
     const [todosSnap, statsSnap] = await Promise.all([
-      getDoc(todosDocRef),
-      getDoc(statsDocRef),
+      get(todosRef),
+      get(statsRef),
     ]);
 
     if (todosSnap.exists() || statsSnap.exists()) {
-      const todos = todosSnap.exists() ? todosSnap.data().items || [] : [];
-      const stats = statsSnap.exists() ? statsSnap.data() : {};
+      const todos = todosSnap.exists() ? Object.values(todosSnap.val() || {}) : [];
+      const stats = statsSnap.exists() ? statsSnap.val() : {};
       state = { ...defaultState, ...stats, todos, filter: 'all' };
       saveLocalState();
       return true;
     }
     return false;
   } catch (err) {
-    console.warn('Firestore 불러오기 실패, localStorage 사용:', err);
+    console.warn('Firebase 불러오기 실패, localStorage 사용:', err);
     return false;
   }
 }
 
 function saveState() {
   saveLocalState();
-  saveToFirestore();
+  saveToFirebase();
 }
 
 // ===== XP & 레벨 시스템 =====
@@ -475,8 +476,8 @@ async function init() {
     Notification.requestPermission();
   }
 
-  // Firestore에서 데이터 불러오기 (실패 시 localStorage 사용)
-  await loadFromFirestore();
+  // Firebase에서 데이터 불러오기 (실패 시 localStorage 사용)
+  await loadFromFirebase();
 
   // 할일 추가
   document.getElementById('add-btn').addEventListener('click', () => {
