@@ -141,6 +141,48 @@ function deleteTodo(id) {
   updateUI();
 }
 
+// ===== 할일 수정 =====
+let editingTodoId = null;
+
+function startEdit(id) {
+  editingTodoId = id;
+  renderTodos();
+
+  // 수정 input에 포커스
+  const input = document.querySelector(`.todo-item[data-id="${id}"] .edit-input`);
+  if (input) {
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
+}
+
+function saveEdit(id) {
+  const item = document.querySelector(`.todo-item[data-id="${id}"]`);
+  if (!item) return;
+
+  const newText = item.querySelector('.edit-input').value.trim();
+  const newDifficulty = item.querySelector('.edit-difficulty').value;
+  const newEnergy = item.querySelector('.edit-energy').value;
+
+  if (!newText) return;
+
+  const todo = state.todos.find((t) => t.id === id);
+  if (!todo) return;
+
+  todo.text = newText;
+  todo.difficulty = newDifficulty;
+  todo.energy = newEnergy;
+
+  editingTodoId = null;
+  saveState();
+  updateUI();
+}
+
+function cancelEdit() {
+  editingTodoId = null;
+  renderTodos();
+}
+
 // ===== 에너지 기반 추천 =====
 function getRecommendations() {
   const energy = state.energy;
@@ -320,12 +362,34 @@ function renderTodos() {
 
   list.innerHTML = todos
     .map((todo) => {
+      const isEditing = editingTodoId === todo.id;
       const diffBadge = {
         easy: '<span class="badge badge-easy">쉬움</span>',
         medium: '<span class="badge badge-medium">보통</span>',
         hard: '<span class="badge badge-hard">어려움</span>',
       };
       const energyIcon = { low: '😴', medium: '🙂', high: '⚡' };
+
+      if (isEditing) {
+        return `
+        <li class="todo-item editing" data-id="${todo.id}">
+          <input class="edit-input" type="text" value="${escapeHTML(todo.text)}" onkeydown="if(event.key==='Enter')saveEdit('${todo.id}');if(event.key==='Escape')cancelEdit();">
+          <select class="edit-difficulty">
+            <option value="easy" ${todo.difficulty === 'easy' ? 'selected' : ''}>🟢 쉬움</option>
+            <option value="medium" ${todo.difficulty === 'medium' ? 'selected' : ''}>🟡 보통</option>
+            <option value="hard" ${todo.difficulty === 'hard' ? 'selected' : ''}>🔴 어려움</option>
+          </select>
+          <select class="edit-energy">
+            <option value="low" ${todo.energy === 'low' ? 'selected' : ''}>😴 낮음</option>
+            <option value="medium" ${todo.energy === 'medium' ? 'selected' : ''}>🙂 보통</option>
+            <option value="high" ${todo.energy === 'high' ? 'selected' : ''}>⚡ 높음</option>
+          </select>
+          <div class="edit-actions">
+            <button class="todo-action-btn save" onclick="saveEdit('${todo.id}')" title="저장">✓</button>
+            <button class="todo-action-btn cancel" onclick="cancelEdit()" title="취소">✕</button>
+          </div>
+        </li>`;
+      }
 
       return `
       <li class="todo-item ${todo.completed ? 'completed' : ''}" data-id="${todo.id}">
@@ -336,6 +400,7 @@ function renderTodos() {
           <span class="badge-energy">${energyIcon[todo.energy]}</span>
         </div>
         <div class="todo-actions">
+          <button class="todo-action-btn" onclick="startEdit('${todo.id}')" title="수정">✏️</button>
           <button class="todo-action-btn" onclick="openPomodoro('${todo.id}')" title="포모도로 타이머">🍅</button>
           <button class="todo-action-btn delete" onclick="deleteTodo('${todo.id}')" title="삭제">🗑</button>
         </div>

@@ -468,6 +468,53 @@ body {
   color: #f56565;
 }
 
+.todo-action-btn.save:hover {
+  background: rgba(72, 187, 120, 0.2);
+  color: #48bb78;
+}
+
+.todo-action-btn.cancel:hover {
+  background: rgba(245, 101, 101, 0.2);
+  color: #f56565;
+}
+
+/* ===== 수정 모드 ===== */
+.todo-item.editing {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.edit-input {
+  flex: 1;
+  min-width: 150px;
+  padding: 8px 12px;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+  background: #16213e;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+}
+
+.edit-difficulty,
+.edit-energy {
+  padding: 8px 10px;
+  border: 2px solid #2a2a4a;
+  border-radius: 8px;
+  background: #16213e;
+  color: #ccc;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 4px;
+}
+
 /* XP 획득 애니메이션 */
 .xp-popup {
   position: fixed;
