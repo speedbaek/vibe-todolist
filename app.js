@@ -1,7 +1,4 @@
-// ===== Firebase 초기화 =====
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
-
+// ===== Firebase 초기화 (compat SDK) =====
 const firebaseConfig = {
   apiKey: "AIzaSyAvGhAoK94HZNjNc_EURXFdGTZJgvylkiA",
   authDomain: "vibe-todolist-9a065.firebaseapp.com",
@@ -13,12 +10,8 @@ const firebaseConfig = {
   measurementId: "G-Q5DL3W0DX5",
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-// Realtime Database 참조
-const todosRef = ref(db, 'todos');
-const statsRef = ref(db, 'userStats');
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
 // ===== 상태 관리 =====
 const STATE_KEY = 'todomaster_state';
@@ -59,8 +52,8 @@ async function saveToFirebase() {
   try {
     const { todos, filter, ...stats } = state;
     await Promise.all([
-      set(todosRef, todos),
-      set(statsRef, {
+      db.ref('todos').set(todos),
+      db.ref('userStats').set({
         xp: stats.xp,
         level: stats.level,
         totalCompleted: stats.totalCompleted,
@@ -77,12 +70,13 @@ async function saveToFirebase() {
 async function loadFromFirebase() {
   try {
     const [todosSnap, statsSnap] = await Promise.all([
-      get(todosRef),
-      get(statsRef),
+      db.ref('todos').once('value'),
+      db.ref('userStats').once('value'),
     ]);
 
     if (todosSnap.exists() || statsSnap.exists()) {
-      const todos = todosSnap.exists() ? Object.values(todosSnap.val() || {}) : [];
+      const todosVal = todosSnap.val();
+      const todos = todosVal ? (Array.isArray(todosVal) ? todosVal : Object.values(todosVal)) : [];
       const stats = statsSnap.exists() ? statsSnap.val() : {};
       state = { ...defaultState, ...stats, todos, filter: 'all' };
       saveLocalState();
@@ -167,7 +161,7 @@ function updateStreak() {
 }
 
 // ===== 할일 CRUD =====
-window.addTodo = function (text, difficulty, energy) {
+function addTodo(text, difficulty, energy) {
   const todo = {
     id: Date.now().toString(),
     text,
@@ -181,7 +175,7 @@ window.addTodo = function (text, difficulty, energy) {
   updateUI();
 };
 
-window.toggleTodo = function (id, element) {
+function toggleTodo(id, element) {
   const todo = state.todos.find((t) => t.id === id);
   if (!todo) return;
 
@@ -200,7 +194,7 @@ window.toggleTodo = function (id, element) {
   updateUI();
 };
 
-window.deleteTodo = function (id) {
+function deleteTodo(id) {
   state.todos = state.todos.filter((t) => t.id !== id);
   saveState();
   updateUI();
@@ -209,7 +203,7 @@ window.deleteTodo = function (id) {
 // ===== 할일 수정 =====
 let editingTodoId = null;
 
-window.startEdit = function (id) {
+function startEdit(id) {
   editingTodoId = id;
   renderTodos();
 
@@ -220,7 +214,7 @@ window.startEdit = function (id) {
   }
 };
 
-window.saveEdit = function (id) {
+function saveEdit(id) {
   const item = document.querySelector(`.todo-item[data-id="${id}"]`);
   if (!item) return;
 
@@ -242,7 +236,7 @@ window.saveEdit = function (id) {
   updateUI();
 };
 
-window.cancelEdit = function () {
+function cancelEdit() {
   editingTodoId = null;
   renderTodos();
 };
@@ -296,7 +290,7 @@ function getRecommendations() {
 // ===== 포모도로 타이머 =====
 const POMODORO_TOTAL = 25 * 60;
 
-window.openPomodoro = function (todoId) {
+function openPomodoro(todoId) {
   const todo = state.todos.find((t) => t.id === todoId);
   if (!todo) return;
 
@@ -470,14 +464,19 @@ function escapeHTML(str) {
 }
 
 // ===== 이벤트 바인딩 =====
-async function init() {
+function init() {
   // 알림 권한
   if ('Notification' in window && Notification.permission === 'default') {
     Notification.requestPermission();
   }
 
-  // Firebase에서 데이터 불러오기 (실패 시 localStorage 사용)
-  await loadFromFirebase();
+  // 먼저 localStorage로 UI 렌더링 (즉시 표시)
+  updateUI();
+
+  // Firebase에서 데이터 불러오기 (비동기, 실패해도 앱 동작에 영향 없음)
+  loadFromFirebase().then((loaded) => {
+    if (loaded) updateUI();
+  });
 
   // 할일 추가
   document.getElementById('add-btn').addEventListener('click', () => {
@@ -488,7 +487,7 @@ async function init() {
     const difficulty = document.getElementById('todo-difficulty').value;
     const energy = document.getElementById('todo-energy').value;
 
-    window.addTodo(text, difficulty, energy);
+    addTodo(text, difficulty, energy);
     input.value = '';
     input.focus();
   });
@@ -538,9 +537,6 @@ async function init() {
   document.getElementById('levelup-close').addEventListener('click', () => {
     document.getElementById('levelup-overlay').style.display = 'none';
   });
-
-  // 초기 렌더링
-  updateUI();
 }
 
 document.addEventListener('DOMContentLoaded', init);
