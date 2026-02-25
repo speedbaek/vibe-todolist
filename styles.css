@@ -1,0 +1,722 @@
+/* ===== 리셋 & 기본 ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: #0f0f1a;
+  color: #e0e0e0;
+  min-height: 100vh;
+}
+
+/* ===== 앱 레이아웃 ===== */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ===== 사이드바 ===== */
+.sidebar {
+  width: 280px;
+  background: #1a1a2e;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  border-right: 1px solid #2a2a4a;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.profile-section {
+  text-align: center;
+}
+
+.avatar {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.username {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.level-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  padding: 4px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.xp-bar-container {
+  background: #2a2a4a;
+  border-radius: 10px;
+  height: 8px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.xp-bar {
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.xp-text {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* 통계 */
+.stats-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #16213e;
+  padding: 12px 16px;
+  border-radius: 12px;
+}
+
+.stat-icon {
+  font-size: 24px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #888;
+}
+
+/* 에너지 */
+.energy-section h3 {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 12px;
+}
+
+.energy-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.energy-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border: 2px solid #2a2a4a;
+  border-radius: 12px;
+  background: transparent;
+  color: #aaa;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.energy-btn span:first-child {
+  font-size: 20px;
+}
+
+.energy-btn:hover {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.energy-btn.active {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.15);
+  color: #fff;
+}
+
+.recommend-btn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+}
+
+.recommend-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* ===== 메인 콘텐츠 ===== */
+.main-content {
+  flex: 1;
+  padding: 32px 40px;
+  max-width: 900px;
+  position: relative;
+}
+
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 28px;
+}
+
+.main-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.date-display {
+  color: #888;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 4px;
+  background: #1a1a2e;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #888;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.filter-btn.active {
+  background: #667eea;
+  color: #fff;
+}
+
+.filter-btn:hover:not(.active) {
+  color: #ccc;
+}
+
+/* ===== 할일 입력 폼 ===== */
+.add-todo-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.add-todo-form input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #2a2a4a;
+  border-radius: 10px;
+  background: #1a1a2e;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.add-todo-form input:focus {
+  border-color: #667eea;
+}
+
+.add-todo-form select {
+  padding: 10px 12px;
+  border: 2px solid #2a2a4a;
+  border-radius: 10px;
+  background: #1a1a2e;
+  color: #ccc;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.add-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.add-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* ===== 추천 배너 ===== */
+.recommendation-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.rec-icon {
+  font-size: 20px;
+}
+
+.rec-text {
+  flex: 1;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.rec-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* ===== 할일 리스트 ===== */
+.todo-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #1a1a2e;
+  border-radius: 12px;
+  border: 1px solid #2a2a4a;
+  transition: all 0.2s;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.todo-item:hover {
+  border-color: #3a3a5a;
+}
+
+.todo-item.completed {
+  opacity: 0.5;
+}
+
+.todo-item.completed .todo-text {
+  text-decoration: line-through;
+  color: #666;
+}
+
+.todo-item.recommended {
+  border-color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
+}
+
+.todo-checkbox {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #4a4a6a;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.todo-checkbox:hover {
+  border-color: #667eea;
+}
+
+.todo-checkbox.checked {
+  background: #667eea;
+  border-color: #667eea;
+}
+
+.todo-checkbox.checked::after {
+  content: '✓';
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.todo-text {
+  flex: 1;
+  font-size: 14px;
+  color: #e0e0e0;
+}
+
+.todo-badges {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.badge {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.badge-easy {
+  background: rgba(72, 187, 120, 0.15);
+  color: #48bb78;
+}
+
+.badge-medium {
+  background: rgba(236, 201, 75, 0.15);
+  color: #ecc94b;
+}
+
+.badge-hard {
+  background: rgba(245, 101, 101, 0.15);
+  color: #f56565;
+}
+
+.badge-energy {
+  font-size: 14px;
+}
+
+.todo-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.todo-item:hover .todo-actions {
+  opacity: 1;
+}
+
+.todo-action-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #888;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.todo-action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.todo-action-btn.delete:hover {
+  background: rgba(245, 101, 101, 0.2);
+  color: #f56565;
+}
+
+/* XP 획득 애니메이션 */
+.xp-popup {
+  position: fixed;
+  font-size: 18px;
+  font-weight: 700;
+  color: #667eea;
+  pointer-events: none;
+  animation: floatUp 1.2s ease-out forwards;
+  z-index: 1000;
+}
+
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-60px) scale(1.3); }
+}
+
+/* ===== 빈 상태 ===== */
+.empty-state {
+  text-align: center;
+  padding: 60px 0;
+  color: #555;
+}
+
+.empty-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+/* ===== 포모도로 타이머 ===== */
+.pomodoro-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+
+.pomodoro-modal {
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 20px;
+  padding: 32px 40px;
+  text-align: center;
+  width: 360px;
+  position: relative;
+}
+
+.pomodoro-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.pomodoro-task {
+  font-size: 16px;
+  color: #ccc;
+  margin-bottom: 24px;
+  max-width: 260px;
+  margin-left: auto;
+  margin-right: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timer-ring {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin: 0 auto 24px;
+}
+
+.timer-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.timer-bg {
+  fill: none;
+  stroke: #2a2a4a;
+  stroke-width: 6;
+}
+
+.timer-progress {
+  fill: none;
+  stroke: #667eea;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 565.48;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1s linear;
+}
+
+.timer-display {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.pomodoro-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.pomo-btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+  font-family: inherit;
+}
+
+.pomo-btn.secondary {
+  background: #2a2a4a;
+}
+
+.pomo-btn:hover {
+  transform: translateY(-1px);
+}
+
+.pomo-sessions {
+  margin-top: 16px;
+  font-size: 13px;
+  color: #888;
+}
+
+/* ===== 레벨업 모달 ===== */
+.levelup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.levelup-modal {
+  text-align: center;
+  animation: popIn 0.5s ease;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.5); opacity: 0; }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.levelup-icon {
+  font-size: 72px;
+  margin-bottom: 12px;
+}
+
+.levelup-modal h2 {
+  font-size: 32px;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.levelup-modal p {
+  font-size: 18px;
+  color: #ccc;
+  margin-bottom: 20px;
+}
+
+.levelup-close-btn {
+  padding: 10px 32px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ===== 반응형 ===== */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 20px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .profile-section {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .stats-section {
+    flex-direction: row;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .energy-section {
+    width: 100%;
+  }
+
+  .main-content {
+    padding: 20px;
+  }
+
+  .main-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .add-todo-form {
+    flex-wrap: wrap;
+  }
+
+  .add-todo-form input {
+    width: 100%;
+  }
+
+  .add-todo-form select {
+    flex: 1;
+  }
+}

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✨ 할일 마스터</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- 사이드바: 유저 프로필 & 에너지 선택 -->
+    <aside class="sidebar">
+      <div class="profile-section">
+        <div class="avatar">🧙</div>
+        <h2 class="username">할일 마스터</h2>
+        <div class="level-badge">Lv. <span id="user-level">1</span></div>
+        <div class="xp-bar-container">
+          <div class="xp-bar" id="xp-bar" style="width: 0%"></div>
+        </div>
+        <p class="xp-text"><span id="current-xp">0</span> / <span id="next-level-xp">100</span> XP</p>
+      </div>
+
+      <div class="stats-section">
+        <div class="stat-card">
+          <span class="stat-icon">🔥</span>
+          <div>
+            <p class="stat-value" id="streak-count">0</p>
+            <p class="stat-label">연속 달성</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">✅</span>
+          <div>
+            <p class="stat-value" id="total-completed">0</p>
+            <p class="stat-label">총 완료</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="energy-section">
+        <h3>오늘의 에너지</h3>
+        <div class="energy-buttons">
+          <button class="energy-btn" data-energy="high" title="에너지 높음">
+            <span>⚡</span>
+            <span>높음</span>
+          </button>
+          <button class="energy-btn active" data-energy="medium" title="에너지 보통">
+            <span>🙂</span>
+            <span>보통</span>
+          </button>
+          <button class="energy-btn" data-energy="low" title="에너지 낮음">
+            <span>😴</span>
+            <span>낮음</span>
+          </button>
+        </div>
+        <button class="recommend-btn" id="recommend-btn">🎯 에너지 맞춤 추천</button>
+      </div>
+    </aside>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="main-content">
+      <!-- 헤더 -->
+      <header class="main-header">
+        <div>
+          <h1>할일 마스터</h1>
+          <p class="date-display" id="date-display"></p>
+        </div>
+        <div class="filter-tabs">
+          <button class="filter-btn active" data-filter="all">전체</button>
+          <button class="filter-btn" data-filter="active">진행중</button>
+          <button class="filter-btn" data-filter="completed">완료</button>
+        </div>
+      </header>
+
+      <!-- 할일 입력 폼 -->
+      <div class="add-todo-form">
+        <input type="text" id="todo-input" placeholder="새로운 할일을 입력하세요..." autocomplete="off">
+        <select id="todo-difficulty">
+          <option value="easy">🟢 쉬움 (+10 XP)</option>
+          <option value="medium" selected>🟡 보통 (+25 XP)</option>
+          <option value="hard">🔴 어려움 (+50 XP)</option>
+        </select>
+        <select id="todo-energy">
+          <option value="low">😴 낮은 에너지</option>
+          <option value="medium" selected>🙂 보통 에너지</option>
+          <option value="high">⚡ 높은 에너지</option>
+        </select>
+        <button id="add-btn" class="add-btn">추가</button>
+      </div>
+
+      <!-- 추천 알림 -->
+      <div class="recommendation-banner" id="recommendation-banner" style="display: none;">
+        <span class="rec-icon">🎯</span>
+        <span class="rec-text" id="rec-text"></span>
+        <button class="rec-close" id="rec-close">&times;</button>
+      </div>
+
+      <!-- 할일 리스트 -->
+      <ul class="todo-list" id="todo-list"></ul>
+
+      <!-- 빈 상태 -->
+      <div class="empty-state" id="empty-state">
+        <span class="empty-icon">📝</span>
+        <p>할일이 없습니다. 새로운 할일을 추가해보세요!</p>
+      </div>
+
+      <!-- 포모도로 타이머 (플로팅) -->
+      <div class="pomodoro-overlay" id="pomodoro-overlay" style="display: none;">
+        <div class="pomodoro-modal">
+          <button class="pomodoro-close" id="pomodoro-close">&times;</button>
+          <h3 class="pomodoro-task" id="pomodoro-task">할일 이름</h3>
+          <div class="timer-ring">
+            <svg viewBox="0 0 200 200">
+              <circle class="timer-bg" cx="100" cy="100" r="90"/>
+              <circle class="timer-progress" id="timer-progress" cx="100" cy="100" r="90"/>
+            </svg>
+            <div class="timer-display" id="timer-display">25:00</div>
+          </div>
+          <div class="pomodoro-controls">
+            <button class="pomo-btn" id="pomo-start">▶ 시작</button>
+            <button class="pomo-btn" id="pomo-pause" style="display:none;">⏸ 일시정지</button>
+            <button class="pomo-btn secondary" id="pomo-reset">↺ 리셋</button>
+          </div>
+          <div class="pomo-sessions">
+            <span id="pomo-session-count">0</span> 세션 완료
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 레벨업 축하 모달 -->
+  <div class="levelup-overlay" id="levelup-overlay" style="display: none;">
+    <div class="levelup-modal">
+      <div class="levelup-icon">🎉</div>
+      <h2>레벨 업!</h2>
+      <p>레벨 <span id="new-level">2</span> 달성!</p>
+      <button class="levelup-close-btn" id="levelup-close">확인</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
