@@ -1,3 +1,24 @@
+// ===== Firebase 초기화 =====
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAvGhAoK94HZNjNc_EURXFdGTZJgvylkiA",
+  authDomain: "vibe-todolist-9a065.firebaseapp.com",
+  projectId: "vibe-todolist-9a065",
+  storageBucket: "vibe-todolist-9a065.firebasestorage.app",
+  messagingSenderId: "180684807995",
+  appId: "1:180684807995:web:08a2e674d49655331de11e",
+  measurementId: "G-Q5DL3W0DX5",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Firestore 문서 참조
+const todosDocRef = doc(db, 'vibe-todolist', 'todos');
+const statsDocRef = doc(db, 'vibe-todolist', 'userStats');
+
 // ===== 상태 관리 =====
 const STATE_KEY = 'todomaster_state';
 
@@ -12,7 +33,7 @@ const defaultState = {
   filter: 'all',
 };
 
-let state = loadState();
+let state = loadLocalState();
 let pomodoroInterval = null;
 let pomodoroSeconds = 25 * 60;
 let pomodoroRunning = false;
@@ -20,7 +41,7 @@ let pomodoroTodoId = null;
 let pomodoroSessions = 0;
 
 // ===== 저장 & 불러오기 =====
-function loadState() {
+function loadLocalState() {
   try {
     const saved = localStorage.getItem(STATE_KEY);
     return saved ? { ...defaultState, ...JSON.parse(saved) } : { ...defaultState };
@@ -29,8 +50,53 @@ function loadState() {
   }
 }
 
-function saveState() {
+function saveLocalState() {
   localStorage.setItem(STATE_KEY, JSON.stringify(state));
+}
+
+async function saveToFirestore() {
+  try {
+    const { todos, ...stats } = state;
+    await Promise.all([
+      setDoc(todosDocRef, { items: todos }),
+      setDoc(statsDocRef, {
+        xp: stats.xp,
+        level: stats.level,
+        totalCompleted: stats.totalCompleted,
+        streak: stats.streak,
+        lastCompletedDate: stats.lastCompletedDate,
+        energy: stats.energy,
+      }),
+    ]);
+  } catch (err) {
+    console.warn('Firestore 저장 실패, localStorage 사용:', err);
+  }
+}
+
+async function loadFromFirestore() {
+  try {
+    const [todosSnap, statsSnap] = await Promise.all([
+      getDoc(todosDocRef),
+      getDoc(statsDocRef),
+    ]);
+
+    if (todosSnap.exists() || statsSnap.exists()) {
+      const todos = todosSnap.exists() ? todosSnap.data().items || [] : [];
+      const stats = statsSnap.exists() ? statsSnap.data() : {};
+      state = { ...defaultState, ...stats, todos, filter: 'all' };
+      saveLocalState();
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.warn('Firestore 불러오기 실패, localStorage 사용:', err);
+    return false;
+  }
+}
+
+function saveState() {
+  saveLocalState();
+  saveToFirestore();
 }
 
 // ===== XP & 레벨 시스템 =====
@@ -41,7 +107,6 @@ function addXP(amount, element) {
   state.xp += amount;
   const needed = LEVEL_XP(state.level);
 
-  // XP 팝업 애니메이션
   showXPPopup(amount, element);
 
   while (state.xp >= needed) {
@@ -77,7 +142,6 @@ function showLevelUp(newLevel) {
   document.getElementById('new-level').textContent = newLevel;
   overlay.style.display = 'flex';
 
-  // 아바타 업데이트
   const avatars = ['🧙', '⚔️', '🛡️', '👑', '🌟', '🔮', '🐉', '💎', '🏆', '🚀'];
   const avatar = avatars[Math.min(newLevel - 1, avatars.length - 1)];
   document.querySelector('.avatar').textContent = avatar;
@@ -102,7 +166,7 @@ function updateStreak() {
 }
 
 // ===== 할일 CRUD =====
-function addTodo(text, difficulty, energy) {
+window.addTodo = function (text, difficulty, energy) {
   const todo = {
     id: Date.now().toString(),
     text,
@@ -114,9 +178,9 @@ function addTodo(text, difficulty, energy) {
   state.todos.unshift(todo);
   saveState();
   updateUI();
-}
+};
 
-function toggleTodo(id, element) {
+window.toggleTodo = function (id, element) {
   const todo = state.todos.find((t) => t.id === id);
   if (!todo) return;
 
@@ -133,30 +197,29 @@ function toggleTodo(id, element) {
 
   saveState();
   updateUI();
-}
+};
 
-function deleteTodo(id) {
+window.deleteTodo = function (id) {
   state.todos = state.todos.filter((t) => t.id !== id);
   saveState();
   updateUI();
-}
+};
 
 // ===== 할일 수정 =====
 let editingTodoId = null;
 
-function startEdit(id) {
+window.startEdit = function (id) {
   editingTodoId = id;
   renderTodos();
 
-  // 수정 input에 포커스
   const input = document.querySelector(`.todo-item[data-id="${id}"] .edit-input`);
   if (input) {
     input.focus();
     input.setSelectionRange(input.value.length, input.value.length);
   }
-}
+};
 
-function saveEdit(id) {
+window.saveEdit = function (id) {
   const item = document.querySelector(`.todo-item[data-id="${id}"]`);
   if (!item) return;
 
@@ -176,12 +239,12 @@ function saveEdit(id) {
   editingTodoId = null;
   saveState();
   updateUI();
-}
+};
 
-function cancelEdit() {
+window.cancelEdit = function () {
   editingTodoId = null;
   renderTodos();
-}
+};
 
 // ===== 에너지 기반 추천 =====
 function getRecommendations() {
@@ -210,7 +273,6 @@ function getRecommendations() {
     if (recommended.length === 0) recommended = activeTodos;
   }
 
-  // 추천 배너 표시
   const banner = document.getElementById('recommendation-banner');
   const recText = document.getElementById('rec-text');
 
@@ -222,7 +284,6 @@ function getRecommendations() {
 
   banner.style.display = 'flex';
 
-  // 추천 할일 하이라이트
   document.querySelectorAll('.todo-item').forEach((el) => el.classList.remove('recommended'));
   const topIds = recommended.slice(0, 3).map((t) => t.id);
   topIds.forEach((id) => {
@@ -234,7 +295,7 @@ function getRecommendations() {
 // ===== 포모도로 타이머 =====
 const POMODORO_TOTAL = 25 * 60;
 
-function openPomodoro(todoId) {
+window.openPomodoro = function (todoId) {
   const todo = state.todos.find((t) => t.id === todoId);
   if (!todo) return;
 
@@ -248,7 +309,7 @@ function openPomodoro(todoId) {
   document.getElementById('pomo-start').style.display = '';
   document.getElementById('pomo-pause').style.display = 'none';
   updateTimerDisplay();
-}
+};
 
 function startPomodoro() {
   if (pomodoroRunning) return;
@@ -266,10 +327,8 @@ function startPomodoro() {
       pomodoroSessions++;
       document.getElementById('pomo-session-count').textContent = pomodoroSessions;
 
-      // 보너스 XP
       showXPPopup(5, document.querySelector('.pomodoro-modal'));
 
-      // 알림
       if (Notification.permission === 'granted') {
         new Notification('포모도로 완료!', { body: '25분 집중 세션을 완료했습니다. 🎉' });
       }
@@ -310,8 +369,7 @@ function updateTimerDisplay() {
   const sec = (pomodoroSeconds % 60).toString().padStart(2, '0');
   document.getElementById('timer-display').textContent = `${min}:${sec}`;
 
-  // 링 프로그레스
-  const circumference = 2 * Math.PI * 90; // r=90
+  const circumference = 2 * Math.PI * 90;
   const progress = pomodoroSeconds / POMODORO_TOTAL;
   const offset = circumference * (1 - progress);
   document.getElementById('timer-progress').style.strokeDashoffset = offset;
@@ -319,23 +377,19 @@ function updateTimerDisplay() {
 
 // ===== UI 렌더링 =====
 function updateUI() {
-  // 프로필
   document.getElementById('user-level').textContent = state.level;
   document.getElementById('current-xp').textContent = state.xp;
   const needed = LEVEL_XP(state.level);
   document.getElementById('next-level-xp').textContent = needed;
   document.getElementById('xp-bar').style.width = `${(state.xp / needed) * 100}%`;
 
-  // 통계
   document.getElementById('streak-count').textContent = state.streak;
   document.getElementById('total-completed').textContent = state.totalCompleted;
 
-  // 날짜
   const today = new Date();
   const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
   document.getElementById('date-display').textContent = today.toLocaleDateString('ko-KR', options);
 
-  // 할일 리스트
   renderTodos();
 }
 
@@ -345,7 +399,6 @@ function renderTodos() {
 
   let todos = [...state.todos];
 
-  // 필터 적용
   if (state.filter === 'active') {
     todos = todos.filter((t) => !t.completed);
   } else if (state.filter === 'completed') {
@@ -416,11 +469,14 @@ function escapeHTML(str) {
 }
 
 // ===== 이벤트 바인딩 =====
-function init() {
+async function init() {
   // 알림 권한
   if ('Notification' in window && Notification.permission === 'default') {
     Notification.requestPermission();
   }
+
+  // Firestore에서 데이터 불러오기 (실패 시 localStorage 사용)
+  await loadFromFirestore();
 
   // 할일 추가
   document.getElementById('add-btn').addEventListener('click', () => {
@@ -431,7 +487,7 @@ function init() {
     const difficulty = document.getElementById('todo-difficulty').value;
     const energy = document.getElementById('todo-energy').value;
 
-    addTodo(text, difficulty, energy);
+    window.addTodo(text, difficulty, energy);
     input.value = '';
     input.focus();
   });
